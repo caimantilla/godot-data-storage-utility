@@ -10,6 +10,8 @@ static var _RECORD_EXTENSIONS := PackedStringArray()
 static var _RECORD_CACHE: Dictionary = {}
 
 
+
+
 static func get_allowed_record_extensions() -> PackedStringArray:
 	if _RECORD_EXTENSIONS.is_empty():
 		if ProjectSettings.has_setting(_CommonScript.SETTING_ALLOWED_EXTENSIONS):
@@ -17,7 +19,29 @@ static func get_allowed_record_extensions() -> PackedStringArray:
 	return _RECORD_EXTENSIONS
 
 
-static func dir_get_record(p_dir_path: String, p_record_id: String) -> Resource:
+
+
+static func dir_get_record(p_dir_path: String, p_record_id: String, p_allowed_extensions: PackedStringArray = get_allowed_record_extensions()) -> Resource:
+	return _dir_get_record(p_dir_path, p_record_id, p_allowed_extensions)
+
+
+static func dir_get_record_path(p_dir_path: String, p_record_id: String, p_allowed_extensions: PackedStringArray = get_allowed_record_extensions()) -> String:
+	return _dir_get_record_path(p_dir_path, p_record_id, p_allowed_extensions)
+
+
+static func dir_get_ids(p_dir_path: String, p_allowed_extensions: PackedStringArray = get_allowed_record_extensions()) -> PackedStringArray:
+	return _dir_get_ids(p_dir_path, p_allowed_extensions)
+
+
+static func dir_get_hint_string(p_dir_path: String, p_allowed_extensions: PackedStringArray = get_allowed_record_extensions()) -> String:
+	return _dir_get_hint_string(p_dir_path, p_allowed_extensions)
+
+
+
+
+
+
+static func _dir_get_record(p_dir_path: String, p_record_id: String, p_allowed_extensions: PackedStringArray) -> Resource:
 	# Check record cache first.
 	if _RECORD_CACHE.has(p_dir_path) and _RECORD_CACHE[p_dir_path].has(p_record_id):
 		return _RECORD_CACHE[p_dir_path][p_record_id] as Resource
@@ -38,8 +62,8 @@ static func dir_get_record(p_dir_path: String, p_record_id: String) -> Resource:
 	return record
 
 
-static func dir_get_record_path(p_dir_path: String, p_record_id: String) -> String:
-	for extension in get_allowed_record_extensions():
+static func _dir_get_record_path(p_dir_path: String, p_record_id: String, p_allowed_extensions: PackedStringArray) -> String:
+	for extension in p_allowed_extensions:
 		var record_path: String = p_dir_path.path_join(p_record_id + "." + extension)
 		if ResourceLoader.exists(record_path):
 			return record_path
@@ -47,20 +71,20 @@ static func dir_get_record_path(p_dir_path: String, p_record_id: String) -> Stri
 	return ""
 
 
-static func dir_get_ids(p_dir_path: String) -> PackedStringArray:
+static func _dir_get_ids(p_dir_path: String, p_allowed_extensions: PackedStringArray) -> PackedStringArray:
 	var ids := PackedStringArray()
 	var file_names: PackedStringArray = _dir_get_file_names(p_dir_path)
 	
 	for file_name in file_names:
-		if get_allowed_record_extensions().has(file_name.get_extension()):
+		if p_allowed_extensions.has(file_name.get_extension()):
 			var id: String = file_name.get_basename()
 			ids.push_back(id)
 	
 	return ids
 
 
-static func dir_get_hint_string(p_dir_path: String) -> String:
-	var ids: PackedStringArray = dir_get_ids(p_dir_path)
+static func _dir_get_hint_string(p_dir_path: String, p_allowed_extensions: PackedStringArray) -> String:
+	var ids: PackedStringArray = _dir_get_ids(p_dir_path, p_allowed_extensions)
 	var hint_string: String = ",".join(ids)
 	return hint_string
 
